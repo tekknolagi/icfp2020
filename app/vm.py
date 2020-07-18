@@ -15,7 +15,7 @@ class Number(Value):
         self.value = value
 
     def __repr__(self):
-        return f"<Number {self.value}>"
+        return f"{self.value}"
 
     def add(self, other):
         assert isinstance(other, Number)
@@ -30,13 +30,16 @@ class Function(Value):
         self.args = args
 
     def __repr__(self):
-        return f"<Function {self.name!r} code={self.code} nargs={self.nargs} args={self.args!r}>"
+        return f"<Function {self.name!r} nargs={self.nargs} args={self.args!r}>"
 
 
 class Apply(Expr):
     def __init__(self, fn, arg):
         self.fn = fn
         self.arg = arg
+
+    def __repr__(self):
+        return f"({self.fn} {self.arg})"
 
 
 class Var(Expr):
@@ -47,21 +50,8 @@ class Var(Expr):
         assert isinstance(other, Var)
         return self.name == other.name
 
-
-# exp:
-#  number
-#  :name or name
-#  ap exp exp
-# statement:
-#  :name = exp
-#  :1029 = ap ap cons 7 ap ap cons 123229502148636 nil
-#  :1155 = ap ap c ap ap b :1153 ap ap c :1152 lt lt
-
-
-stdlib = {
-    "inc": Function("inc", lambda x: x.add(Number(1)), 1),
-    "add": Function("add", lambda x, y: x.add(y), 2),
-}
+    def __repr__(self):
+        return self.name
 
 
 def parse_int(token):
@@ -77,21 +67,36 @@ def parse_name(token):
     return None
 
 
-# ap ap ap add add 1 2 3
-# ap(ap, ap add add 1 2 3)
-# ap(ap, ap(add, add 1 2 3))
-# ap(ap, ap(baz, galaxy 1 2 3))
-
-
-def parse(tokens):
+def parse_atom(tokens):
+    if not tokens:
+        return None
     token = tokens[0]
+    if token == "ap":
+        return None
     result = parse_int(token)
     if result is not None:
+        tokens.pop(0)
         return Number(result)
     result = parse_name(token)
     if result is not None:
+        tokens.pop(0)
         return Var(result)
-    raise SyntaxError("Cannot parse", tokens)
+
+
+def parse(tokens):
+    if tokens and tokens[0] == "ap":
+        tokens.pop(0)
+        lhs = parse(tokens)
+        rhs = parse(tokens)
+        return Apply(lhs, rhs)
+    return parse_atom(tokens)
+
+
+stdlib = {
+    "dec": Function("dec", lambda x: x.add(Number(-1)), 1),
+    "inc": Function("inc", lambda x: x.add(Number(1)), 1),
+    "add": Function("add", lambda x, y: x.add(y), 2),
+}
 
 
 class VM:
@@ -110,3 +115,18 @@ class VM:
                 return fn.code(*fn.args, arg)
             return Function(fn.name, fn.code, fn.nargs - 1, fn.args + (arg,))
         raise RuntimeError("Unsupported exp")
+
+
+def show_parse(s):
+    print(s)
+    ls = s.split()
+    print(parse(ls))
+    # Must have consumed every token
+    assert len(ls) == 0
+
+
+if __name__ == "__main__":
+    show_parse("ap ap cons 7 ap ap cons 123229502148636 nil")
+    show_parse("ap dec ap ap add 1 2")
+    show_parse("ap ap f x y")
+    show_parse("ap ap c ap ap b :1153 ap ap c :1152 lt lt")

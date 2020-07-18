@@ -40,3 +40,16 @@ def test_parse_number_returns_number():
 
 def test_parse_id_returns_id():
     assert parse(["a"]) == Var("a")
+
+
+def test_parse_app():
+    exp = parse(["ap", "ap", "add", "1", "2"])
+    vm = VM()
+    assert vm.eval(exp) == Number(3)
+
+
+def test_parse_app2():
+    # From the video
+    exp = parse("ap dec ap ap add 1 2".split())
+    vm = VM()
+    assert vm.eval(exp) == Number(2)
