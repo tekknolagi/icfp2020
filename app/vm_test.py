@@ -88,3 +88,15 @@ def test_eq_with_numbers():
 def test_eq_with_bool():
     assert VM().eval(parse("ap ap eq t t".split())) == Bool(True)
     assert VM().eval(parse("ap ap eq t f".split())) == Bool(False)
+
+
+def test_lt_with_equal_numbers_returns_false():
+    assert VM().eval(parse("ap ap lt 1 1".split())) == Bool(False)
+
+
+def test_lt_with_lhs_less_than_rhs_returns_true():
+    assert VM().eval(parse("ap ap lt 1 2".split())) == Bool(True)
+
+
+def test_lt_with_lhs_greater_than_rhs_returns_false():
+    assert VM().eval(parse("ap ap lt 2 1".split())) == Bool(False)

@@ -22,6 +22,10 @@ class Number(Value):
         assert isinstance(other, Number)
         return Number(self.value + other.value)
 
+    def lt(self, other):
+        assert isinstance(other, Number)
+        return Bool(self.value < other.value)
+
     def mul(self, other):
         assert isinstance(other, Number)
         return Number(self.value * other.value)
@@ -116,6 +120,7 @@ stdlib = {
     "dec": Function("dec", lambda x: x.add(Number(-1)), 1),
     "div": Function("div", lambda x, y: x.div(y), 2),
     "eq": Function("eq", lambda x, y: Bool(x == y), 2),
+    "lt": Function("lt", lambda x, y: x.lt(y), 2),
     "inc": Function("inc", lambda x: x.add(Number(1)), 1),
     "mul": Function("mul", lambda x, y: x.mul(y), 2),
     "t": Bool(True),
