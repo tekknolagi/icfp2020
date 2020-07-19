@@ -1,5 +1,5 @@
 class Expr:
-    pass
+    evaluated = None
 
 
 class Value(Expr):
@@ -12,8 +12,11 @@ def Bool(v):
 
 class Number(Value):
     def __eq__(self, other):
-        assert isinstance(other, Number)
-        return self.value == other.value
+        if isinstance(other, Number):
+            assert isinstance(self.value, int)
+            assert isinstance(other.value, int)
+            return self.value == other.value
+        return False
 
     def __init__(self, value):
         assert isinstance(value, int)
@@ -25,6 +28,10 @@ class Number(Value):
     def add(self, other):
         assert isinstance(other, Number)
         return Number(self.value + other.value)
+
+    def sub(self, other):
+        assert isinstance(other, Number)
+        return Number(self.value - other.value)
 
     def lt(self, other):
         assert isinstance(other, Number)
@@ -42,17 +49,6 @@ class Number(Value):
         return Number(self.value // other.value)
 
 
-class Function(Value):
-    def __init__(self, name, code, nargs, args=()):
-        self.name = name
-        self.code = code
-        self.nargs = nargs
-        self.args = args
-
-    def __repr__(self):
-        return f"<Function {self.name!r} nargs={self.nargs} args={self.args!r}>"
-
-
 class Apply(Expr):
     def __init__(self, fn, arg):
         self.fn = fn
@@ -67,8 +63,9 @@ class Var(Expr):
         self.name = name
 
     def __eq__(self, other):
-        assert isinstance(other, Var)
-        return self.name == other.name
+        if isinstance(other, Var):
+            return self.name == other.name
+        return NotImplemented
 
     def __repr__(self):
         return self.name
@@ -91,8 +88,7 @@ def parse_atom(tokens):
     if not tokens:
         return None
     token = tokens[0]
-    if token == "ap":
-        return None
+    assert token != "ap"
     result = parse_int(token)
     if result is not None:
         tokens.pop(0)
@@ -115,44 +111,105 @@ def parse(tokens):
 # It's a little gross to call back into eval from a combinator, but that might
 # be the right thing to do here.
 
+t = Var("t")
+f = Var("f")
 
-stdlib = {
-    "add": Function("add", lambda x, y: x.add(y), 2),
-    "dec": Function("dec", lambda x: x.add(Number(-1)), 1),
-    "div": Function("div", lambda x, y: x.div(y), 2),
-    "eq": Function("eq", lambda x, y: Bool(x == y), 2),
-    "lt": Function("lt", lambda x, y: x.lt(y), 2),
-    "inc": Function("inc", lambda x: x.add(Number(1)), 1),
-    "mul": Function("mul", lambda x, y: x.mul(y), 2),
-    "neg": Function("neg", lambda x: x.neg(), 1),
-    "c": Function("c", lambda x, y, z: eval(Apply(Apply(x, z), y)), 3),
-    "s": Function("s", lambda x, y, z: eval(Apply(Apply(x, z), Apply(y, z))), 3),
-    "b": Function("b", lambda x, y, z: eval(Apply(x, Apply(y, z))), 3),
-    "t": Function("t", lambda x, y: x, 2),
-    "f": Function("f", lambda x, y: y, 2),
-}
+
+def eval1(exp, env):
+    if exp.evaluated:
+        return exp.evaluated
+    if isinstance(exp, Var):
+        result = env.get(exp.name)
+        if result:
+            return result
+    if isinstance(exp, Apply):
+        fn = eval(exp.fn, env)
+        x = exp.arg
+        if isinstance(fn, Var):
+            # neg = ap sub 0
+            # if fn.name == "neg": return eval(x, env).neg()
+            # inc = ap add 1
+            if fn.name == "inc":
+                return eval(x, env).add(Number(1))
+            if fn.name == "dec":
+                return eval(x, env).sub(Number(1))
+            if fn.name == "i":
+                return x
+            if fn.name == "nil":
+                return t
+            if fn.name == "isnil":
+                return Apply(x, Apply(t, Apply(t, f)))
+            if fn.name == "car":
+                return Apply(x, t)
+            if fn.name == "cdr":
+                return Apply(x, f)
+        if isinstance(fn, Apply):
+            fn2 = eval(fn.fn, env)
+            y = fn.arg
+            if isinstance(fn2, Var):
+                if fn2.name == "t":
+                    return y
+                if fn2.name == "f":
+                    return x
+                if fn2.name == "add":
+                    return eval(x, env).add(eval(y, env))
+                if fn2.name == "sub":
+                    return eval(y, env).sub(eval(x, env))
+                if fn2.name == "mul":
+                    return eval(x, env).mul(eval(y, env))
+                if fn2.name == "div":
+                    return eval(y, env).div(eval(x, env))
+                if fn2.name == "lt":
+                    return eval(y, env).lt(eval(x, env))
+                if fn2.name == "eq":
+                    return t if eval(x, env) == eval(y, env) else f
+                if fn2.name == "cons":
+                    result = Apply(Apply(cons, eval(y, env)), eval(x, env))
+                    result.evaluated = result
+                    return result
+            if isinstance(fn2, Apply):
+                fn3 = eval(fn2.fn, env)
+                z = fn2.arg
+                if isinstance(fn3, Var):
+                    if fn3.name == "s":
+                        return Apply(Apply(z, x), Apply(y, x))
+                    if fn3.name == "c":
+                        return Apply(Apply(z, x), y)
+                    if fn3.name == "b":
+                        return Apply(z, Apply(y, x))
+                    if fn3.name == "cons":
+                        return Apply(Apply(x, z), y)
+    return exp
+
+
+stdlib = {"t": t, "f": f}
 
 
 def eval(exp, env=None):
     if env is None:
         env = stdlib
-    if isinstance(exp, Value):
-        # Values are self-evaluating
-        return exp
-    if isinstance(exp, Var):
-        return env[exp.name]
-    if isinstance(exp, Apply):
-        fn = eval(exp.fn, env)
-        arg = eval(exp.arg, env)
-        if fn.nargs == 1:
-            return fn.code(*fn.args, arg)
-        return Function(fn.name, fn.code, fn.nargs - 1, fn.args + (arg,))
-    raise RuntimeError("Unsupported exp")
+    if exp.evaluated:
+        return exp.evaluated
+    initial = exp
+    # Eval to fixpoint
+    while True:
+        result = eval1(exp, env)
+        if result == exp:
+            initial.evaluted = result
+            return result
+        exp = result
 
 
-# TODO: Support recursive functions
-def evaldef(name, exp, env):
-    env[name] = eval(exp, env)
+def evaldef(line, env):
+    assert line.count("=") == 1
+    name, _, body = line.partition("=")
+    tokens = body.split()
+    exp = parse(tokens)
+    assert len(tokens) == 0
+    env[name.strip()] = eval(exp, env)
+
+
+evaldef("neg = ap sub 0", stdlib)
 
 
 def show_parse(s):
@@ -172,9 +229,7 @@ if __name__ == "__main__":
             print("Quit.")
             break
         if "=" in line:
-            assert line.count("=") == 1
-            name, _, body = line.partition("=")
-            evaldef(name.strip(), parse(body.split()), env)
+            evaldef(line, env)
             continue
         tokens = line.split()
         ast = parse(tokens)

@@ -1,4 +1,4 @@
-from vm import Apply, Number, Var, eval, parse, stdlib
+from vm import Apply, Number, Var, eval, evaldef, parse, stdlib
 
 
 def test_number_add_returns_sum():
@@ -20,12 +20,12 @@ def test_eval_with_var_looks_up_value():
 
 
 def test_inc_with_number_returns_next_number():
-    assert eval(Apply(stdlib["inc"], Number(5))) == Number(6)
+    assert eval(Apply(Var("inc"), Number(5))) == Number(6)
 
 
 def test_add_with_two_numbers_returns_result():
     # ap (ap add 5) 6
-    assert eval(Apply(Apply(stdlib["add"], Number(5)), Number(6))) == Number(11)
+    assert eval(Apply(Apply(Var("add"), Number(5)), Number(6))) == Number(11)
 
 
 def test_parse_number_returns_number():
@@ -115,11 +115,19 @@ def test_t_combinator():
     assert eval(parse("ap ap t 1 5".split())) == Number(1)
     assert eval(parse("ap ap t t ap inc 5".split())) == stdlib["t"]
     assert eval(parse("ap ap t ap inc 5 t".split())) == Number(6)
-    # TODO: Implement I combinator?
-    # assert eval(parse("ap ap t t i".split())) == stdlib["t"]
+    assert eval(parse("ap ap t t i".split())) == stdlib["t"]
 
 
 def test_f_combinator():
     assert eval(parse("ap ap f 1 5".split())) == Number(5)
     assert eval(parse("ap ap f f ap inc 5".split())) == Number(6)
     assert eval(parse("ap ap f ap inc 5 t".split())) == stdlib["t"]
+
+
+def test_pwr2():
+    env = stdlib.copy()
+    evaldef(
+        "pwr2   =   ap ap s ap ap c ap eq 0 1 ap ap b ap mul 2 ap ap b pwr2 ap add -1",
+        env,
+    )
+    assert eval(parse("ap pwr2 8".split()), env) == Number(256)
