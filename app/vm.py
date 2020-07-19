@@ -150,6 +150,11 @@ def eval(exp, env=None):
     raise RuntimeError("Unsupported exp")
 
 
+# TODO: Support recursive functions
+def evaldef(name, exp, env):
+    env[name] = eval(exp, env)
+
+
 def show_parse(s):
     print(s)
     ls = s.split()
@@ -159,15 +164,21 @@ def show_parse(s):
 
 
 if __name__ == "__main__":
+    env = stdlib.copy()
     while True:
         try:
             line = input("> ")
         except EOFError:
             print("Quit.")
             break
+        if "=" in line:
+            assert line.count("=") == 1
+            name, _, body = line.partition("=")
+            evaldef(name.strip(), parse(body.split()), env)
+            continue
         tokens = line.split()
         ast = parse(tokens)
         if tokens:
             raise RuntimeError("Did not consume all tokens. Remaining:", tokens)
         print(";", ast)
-        print(eval(ast))
+        print(eval(ast, env))
