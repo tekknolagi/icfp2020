@@ -112,11 +112,12 @@ def parse(tokens):
 
 
 stdlib = {
-    "dec": Function("dec", lambda x: x.add(Number(-1)), 1),
-    "inc": Function("inc", lambda x: x.add(Number(1)), 1),
     "add": Function("add", lambda x, y: x.add(y), 2),
-    "mul": Function("mul", lambda x, y: x.mul(y), 2),
+    "dec": Function("dec", lambda x: x.add(Number(-1)), 1),
     "div": Function("div", lambda x, y: x.div(y), 2),
+    "eq": Function("eq", lambda x, y: Bool(x == y), 2),
+    "inc": Function("inc", lambda x: x.add(Number(1)), 1),
+    "mul": Function("mul", lambda x, y: x.mul(y), 2),
     "t": Bool(True),
     "f": Bool(False),
 }

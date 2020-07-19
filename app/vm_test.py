@@ -78,3 +78,13 @@ def test_true_returns_bool():
 def test_false_returns_bool():
     vm = VM()
     assert vm.eval(parse("f".split())) == Bool(False)
+
+
+def test_eq_with_numbers():
+    assert VM().eval(parse("ap ap eq 1 1".split())) == Bool(True)
+    assert VM().eval(parse("ap ap eq 1 2".split())) == Bool(False)
+
+
+def test_eq_with_bool():
+    assert VM().eval(parse("ap ap eq t t".split())) == Bool(True)
+    assert VM().eval(parse("ap ap eq t f".split())) == Bool(False)
