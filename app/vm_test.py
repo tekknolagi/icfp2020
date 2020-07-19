@@ -1,4 +1,4 @@
-from vm import VM, Apply, Number, Var, parse, stdlib
+from vm import VM, Apply, Bool, Number, Var, parse, stdlib
 
 
 def test_number_add_returns_sum():
@@ -68,3 +68,13 @@ def test_div_with_two_numbers_returns_result():
 def test_div_returns_integer():
     vm = VM()
     assert vm.eval(parse("ap ap div 10 4".split())) == Number(2)
+
+
+def test_true_returns_bool():
+    vm = VM()
+    assert vm.eval(parse("t".split())) == Bool(True)
+
+
+def test_false_returns_bool():
+    vm = VM()
+    assert vm.eval(parse("f".split())) == Bool(False)

@@ -31,6 +31,16 @@ class Number(Value):
         return Number(self.value // other.value)
 
 
+class Bool(Value):
+    def __init__(self, value):
+        assert isinstance(value, bool)
+        self.value = value
+
+    def __eq__(self, other):
+        assert isinstance(other, Bool)
+        return self.value == other.value
+
+
 class Function(Value):
     def __init__(self, name, code, nargs, args=()):
         self.name = name
@@ -107,6 +117,8 @@ stdlib = {
     "add": Function("add", lambda x, y: x.add(y), 2),
     "mul": Function("mul", lambda x, y: x.mul(y), 2),
     "div": Function("div", lambda x, y: x.div(y), 2),
+    "t": Bool(True),
+    "f": Bool(False),
 }
 
 
