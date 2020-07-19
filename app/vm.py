@@ -131,14 +131,11 @@ stdlib = {
     "inc": Function("inc", lambda x: x.add(Number(1)), 1),
     "mul": Function("mul", lambda x, y: x.mul(y), 2),
     "neg": Function("neg", lambda x: x.neg(), 1),
+    "c": Function("c", lambda x, y, z: eval(Apply(Apply(x, z), y)), 3),
     "s": Function("s", lambda x, y, z: eval(Apply(Apply(x, z), Apply(y, z))), 3),
     "t": Bool(True),
     "f": Bool(False),
 }
-
-# def I(x): return x
-# def K(x): return lambda y: x
-# def S(x): return lambda y: lambda z: x(z)(y(z))
 
 
 def eval(exp, env=None):

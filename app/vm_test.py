@@ -101,3 +101,7 @@ def test_neg_with_negative_returns_positive():
 def test_s_combinator():
     assert eval(parse("ap ap ap s add inc 1".split())) == Number(3)
     assert eval(parse("ap ap ap s mul ap add 1 6".split())) == Number(42)
+
+
+def test_c_combinator():
+    assert eval(parse("ap ap ap c add 1 2".split())) == Number(3)
