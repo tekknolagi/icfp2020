@@ -118,6 +118,10 @@ def parse(tokens):
     return parse_atom(tokens)
 
 
+# It's a little gross to call back into eval from a combinator, but that might
+# be the right thing to do here.
+
+
 stdlib = {
     "add": Function("add", lambda x, y: x.add(y), 2),
     "dec": Function("dec", lambda x: x.add(Number(-1)), 1),
@@ -127,27 +131,31 @@ stdlib = {
     "inc": Function("inc", lambda x: x.add(Number(1)), 1),
     "mul": Function("mul", lambda x, y: x.mul(y), 2),
     "neg": Function("neg", lambda x: x.neg(), 1),
+    "s": Function("s", lambda x, y, z: eval(Apply(Apply(x, z), Apply(y, z))), 3),
     "t": Bool(True),
     "f": Bool(False),
 }
 
+# def I(x): return x
+# def K(x): return lambda y: x
+# def S(x): return lambda y: lambda z: x(z)(y(z))
 
-class VM:
-    def eval(self, exp, env=None):
-        if env is None:
-            env = stdlib
-        if isinstance(exp, Value):
-            # Values are self-evaluating
-            return exp
-        if isinstance(exp, Var):
-            return env[exp.name]
-        if isinstance(exp, Apply):
-            fn = self.eval(exp.fn, env)
-            arg = self.eval(exp.arg, env)
-            if fn.nargs == 1:
-                return fn.code(*fn.args, arg)
-            return Function(fn.name, fn.code, fn.nargs - 1, fn.args + (arg,))
-        raise RuntimeError("Unsupported exp")
+
+def eval(exp, env=None):
+    if env is None:
+        env = stdlib
+    if isinstance(exp, Value):
+        # Values are self-evaluating
+        return exp
+    if isinstance(exp, Var):
+        return env[exp.name]
+    if isinstance(exp, Apply):
+        fn = eval(exp.fn, env)
+        arg = eval(exp.arg, env)
+        if fn.nargs == 1:
+            return fn.code(*fn.args, arg)
+        return Function(fn.name, fn.code, fn.nargs - 1, fn.args + (arg,))
+    raise RuntimeError("Unsupported exp")
 
 
 def show_parse(s):
@@ -159,7 +167,15 @@ def show_parse(s):
 
 
 if __name__ == "__main__":
-    show_parse("ap ap cons 7 ap ap cons 123229502148636 nil")
-    show_parse("ap dec ap ap add 1 2")
-    show_parse("ap ap f x y")
-    show_parse("ap ap c ap ap b :1153 ap ap c :1152 lt lt")
+    while True:
+        try:
+            line = input("> ")
+        except EOFError:
+            print("Quit.")
+            break
+        tokens = line.split()
+        ast = parse(tokens)
+        if tokens:
+            raise RuntimeError("Did not consume all tokens. Remaining:", tokens)
+        print(";", ast)
+        print(eval(ast))
