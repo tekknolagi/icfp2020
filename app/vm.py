@@ -6,6 +6,10 @@ class Value(Expr):
     pass
 
 
+def Bool(v):
+    return stdlib["t"] if v else stdlib["f"]
+
+
 class Number(Value):
     def __eq__(self, other):
         assert isinstance(other, Number)
@@ -36,16 +40,6 @@ class Number(Value):
     def div(self, other):
         assert isinstance(other, Number)
         return Number(self.value // other.value)
-
-
-class Bool(Value):
-    def __init__(self, value):
-        assert isinstance(value, bool)
-        self.value = value
-
-    def __eq__(self, other):
-        assert isinstance(other, Bool)
-        return self.value == other.value
 
 
 class Function(Value):
@@ -134,8 +128,8 @@ stdlib = {
     "c": Function("c", lambda x, y, z: eval(Apply(Apply(x, z), y)), 3),
     "s": Function("s", lambda x, y, z: eval(Apply(Apply(x, z), Apply(y, z))), 3),
     "b": Function("b", lambda x, y, z: eval(Apply(x, Apply(y, z))), 3),
-    "t": Bool(True),
-    "f": Bool(False),
+    "t": Function("t", lambda x, y: x, 2),
+    "f": Function("f", lambda x, y: y, 2),
 }
 
 

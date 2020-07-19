@@ -1,4 +1,4 @@
-from vm import Apply, Bool, Number, Var, eval, parse, stdlib
+from vm import Apply, Number, Var, eval, parse, stdlib
 
 
 def test_number_add_returns_sum():
@@ -61,33 +61,33 @@ def test_div_returns_integer():
 
 
 def test_true_returns_bool():
-    assert eval(parse("t".split())) == Bool(True)
+    assert eval(parse("t".split())) == stdlib["t"]
 
 
 def test_false_returns_bool():
-    assert eval(parse("f".split())) == Bool(False)
+    assert eval(parse("f".split())) == stdlib["f"]
 
 
 def test_eq_with_numbers():
-    assert eval(parse("ap ap eq 1 1".split())) == Bool(True)
-    assert eval(parse("ap ap eq 1 2".split())) == Bool(False)
+    assert eval(parse("ap ap eq 1 1".split())) == stdlib["t"]
+    assert eval(parse("ap ap eq 1 2".split())) == stdlib["f"]
 
 
 def test_eq_with_bool():
-    assert eval(parse("ap ap eq t t".split())) == Bool(True)
-    assert eval(parse("ap ap eq t f".split())) == Bool(False)
+    assert eval(parse("ap ap eq t t".split())) == stdlib["t"]
+    assert eval(parse("ap ap eq t f".split())) == stdlib["f"]
 
 
 def test_lt_with_equal_numbers_returns_false():
-    assert eval(parse("ap ap lt 1 1".split())) == Bool(False)
+    assert eval(parse("ap ap lt 1 1".split())) == stdlib["f"]
 
 
 def test_lt_with_lhs_less_than_rhs_returns_true():
-    assert eval(parse("ap ap lt 1 2".split())) == Bool(True)
+    assert eval(parse("ap ap lt 1 2".split())) == stdlib["t"]
 
 
 def test_lt_with_lhs_greater_than_rhs_returns_false():
-    assert eval(parse("ap ap lt 2 1".split())) == Bool(False)
+    assert eval(parse("ap ap lt 2 1".split())) == stdlib["f"]
 
 
 def test_neg_with_positive_returns_negative():
@@ -109,3 +109,17 @@ def test_c_combinator():
 
 def test_b_combinator():
     assert eval(parse("ap ap ap b inc dec 5".split())) == Number(5)
+
+
+def test_t_combinator():
+    assert eval(parse("ap ap t 1 5".split())) == Number(1)
+    assert eval(parse("ap ap t t ap inc 5".split())) == stdlib["t"]
+    assert eval(parse("ap ap t ap inc 5 t".split())) == Number(6)
+    # TODO: Implement I combinator?
+    # assert eval(parse("ap ap t t i".split())) == stdlib["t"]
+
+
+def test_f_combinator():
+    assert eval(parse("ap ap f 1 5".split())) == Number(5)
+    assert eval(parse("ap ap f f ap inc 5".split())) == Number(6)
+    assert eval(parse("ap ap f ap inc 5 t".split())) == stdlib["t"]
