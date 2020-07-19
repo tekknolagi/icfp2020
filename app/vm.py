@@ -30,6 +30,9 @@ class Number(Value):
         assert isinstance(other, Number)
         return Number(self.value * other.value)
 
+    def neg(self):
+        return Number(-self.value)
+
     def div(self, other):
         assert isinstance(other, Number)
         return Number(self.value // other.value)
@@ -123,6 +126,7 @@ stdlib = {
     "lt": Function("lt", lambda x, y: x.lt(y), 2),
     "inc": Function("inc", lambda x: x.add(Number(1)), 1),
     "mul": Function("mul", lambda x, y: x.mul(y), 2),
+    "neg": Function("neg", lambda x: x.neg(), 1),
     "t": Bool(True),
     "f": Bool(False),
 }

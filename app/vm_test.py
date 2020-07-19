@@ -100,3 +100,11 @@ def test_lt_with_lhs_less_than_rhs_returns_true():
 
 def test_lt_with_lhs_greater_than_rhs_returns_false():
     assert VM().eval(parse("ap ap lt 2 1".split())) == Bool(False)
+
+
+def test_neg_with_positive_returns_negative():
+    assert VM().eval(parse("ap neg 5".split())) == Number(-5)
+
+
+def test_neg_with_negative_returns_positive():
+    assert VM().eval(parse("ap neg -5".split())) == Number(5)
