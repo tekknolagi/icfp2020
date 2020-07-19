@@ -133,6 +133,7 @@ stdlib = {
     "neg": Function("neg", lambda x: x.neg(), 1),
     "c": Function("c", lambda x, y, z: eval(Apply(Apply(x, z), y)), 3),
     "s": Function("s", lambda x, y, z: eval(Apply(Apply(x, z), Apply(y, z))), 3),
+    "b": Function("b", lambda x, y, z: eval(Apply(x, Apply(y, z))), 3),
     "t": Bool(True),
     "f": Bool(False),
 }

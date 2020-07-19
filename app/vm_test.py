@@ -105,3 +105,7 @@ def test_s_combinator():
 
 def test_c_combinator():
     assert eval(parse("ap ap ap c add 1 2".split())) == Number(3)
+
+
+def test_b_combinator():
+    assert eval(parse("ap ap ap b inc dec 5".split())) == Number(5)
