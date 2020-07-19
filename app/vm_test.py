@@ -53,3 +53,18 @@ def test_parse_app2():
     exp = parse("ap dec ap ap add 1 2".split())
     vm = VM()
     assert vm.eval(exp) == Number(2)
+
+
+def test_mul_with_two_numbers_returns_result():
+    vm = VM()
+    assert vm.eval(parse("ap ap mul 3 4".split())) == Number(12)
+
+
+def test_div_with_two_numbers_returns_result():
+    vm = VM()
+    assert vm.eval(parse("ap ap div 12 4".split())) == Number(3)
+
+
+def test_div_returns_integer():
+    vm = VM()
+    assert vm.eval(parse("ap ap div 10 4".split())) == Number(2)

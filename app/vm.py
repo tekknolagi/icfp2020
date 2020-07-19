@@ -12,6 +12,7 @@ class Number(Value):
         return self.value == other.value
 
     def __init__(self, value):
+        assert isinstance(value, int)
         self.value = value
 
     def __repr__(self):
@@ -20,6 +21,14 @@ class Number(Value):
     def add(self, other):
         assert isinstance(other, Number)
         return Number(self.value + other.value)
+
+    def mul(self, other):
+        assert isinstance(other, Number)
+        return Number(self.value * other.value)
+
+    def div(self, other):
+        assert isinstance(other, Number)
+        return Number(self.value // other.value)
 
 
 class Function(Value):
@@ -96,6 +105,8 @@ stdlib = {
     "dec": Function("dec", lambda x: x.add(Number(-1)), 1),
     "inc": Function("inc", lambda x: x.add(Number(1)), 1),
     "add": Function("add", lambda x, y: x.add(y), 2),
+    "mul": Function("mul", lambda x, y: x.mul(y), 2),
+    "div": Function("div", lambda x, y: x.div(y), 2),
 }
 
 
